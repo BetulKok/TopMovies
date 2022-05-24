@@ -45,17 +45,21 @@ namespace TopMovies.Controllers
         //GENRE/{ActionName}
         public IActionResult IndexWithGenre(string genreName)
         {
-            Genre genre = _db.Genres.FirstOrDefault(g => g.Name == genreName);
+            //Genre genre = _db.Genres.FirstOrDefault(g => g.Name == genreName);
+            Genre genre = _db.Genres.Include(g => g.Movies).ThenInclude(x => x.Genres).FirstOrDefault(g => g.Name == genreName);
             if (genre == null)
             {
                 return NotFound();
             }
             var vm = new HomeViewModel()
             {
-                Movies = _db.Movies
-                .Where(movie => movie.Genres.Contains(genre))
-                .Include(x => x.Genres)
-                .ToList(),
+                //Movies = _db.Movies
+                //.Where(movie => movie.Genres.Contains(genre))
+                //.Include(x => x.Genres)
+                //.ToList(),
+
+                Movies = genre.Movies,
+               
                 Genres = _db.Genres
                 .OrderBy(x => x.Name)
                 .Select(x => new GenreWithMovieCountViewModel()

@@ -25,7 +25,7 @@ namespace TopMovies
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<ApplicationDbContext>(x => 
+            services.AddDbContext<ApplicationDbContext>(x =>
                 x.UseSqlServer(Configuration.GetConnectionString("ApplicationDbContext")));
             services.AddControllersWithViews();
         }
@@ -53,13 +53,20 @@ namespace TopMovies
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
+                   name: "areas",
+                   pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
+
+                endpoints.MapControllerRoute(
                     name: "homeWithGenre",
                     pattern: "Genre/{genreName}",
-                    defaults: new { controller = "Home", action= "IndexWithGenre"});
+                    defaults: new { controller = "Home", action = "IndexWithGenre" });
 
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+
+
             });
 
 
