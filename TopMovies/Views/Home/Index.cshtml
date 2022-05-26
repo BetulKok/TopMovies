@@ -1,5 +1,7 @@
 ﻿@model HomeViewModel
-@{ ViewData["Title"] = "Home Page"; }
+@{ ViewData["Title"] = "Home Page";
+    var favs = GetFavList();
+    }
 
 <h1>Top Movies</h1>
 
@@ -20,7 +22,7 @@
         </div>
     </div>
     <div class="col-sm-9 ">
-        <table class="table table-striped table-bordered">
+        <table class="table table-striped table-bordered" style="height:1px">
             <thead>
                 <tr>
                     <th>#</th>
@@ -38,14 +40,22 @@
                      <td>@movie.Id</td>
                      <td><img src="@movie.ImageUrl" alt="@movie.Name" width="67" /></td>
                      <td>
-                        <a href="https://www.imdb.com/title/@movie.ImdbId/" target="_blank">
-                             @movie.Name
-                        </a>
+                         <div class="d-flex justify-content-between align-items-start">
+                             <a href="https://www.imdb.com/title/@movie.ImdbId/" target="_blank">
+                                 @movie.Name
+
+                             </a>
+                             <a data-fav="@movie.Id" href="#" data-toggle="tooltip" title="@(IsFavorited(movie.Id)? "Remove from favorites": "Add to favorites")" class="text-danger">
+                                 <i class="fa-@(IsFavorited(movie.Id)? "solid": "regular") fa-heart"> </i>
+                             </a>
+                         </div>
                      </td>
                      <td>@movie.Year</td>
                      <td>@movie.Rating</td>
                      <td>@string.Join(", ", movie.Genres.Select(x => x.Name))</td>
-                 </tr>}
+
+                 </tr>
+                 }
             </tbody>
         </table>
     </div>
@@ -62,9 +72,67 @@
                 { "targets": [1, 3, 4, 5], "searchable": false }
             ]
         });
+       
+        $('[data-toggle="tooltip"]').tooltip();
 
+        $("body").on("click", "[data-fav]", function (event) {
+            var a = this;
+            event.preventDefault();
+            var movieId = $(this).data("fav");
+
+            $.ajax({
+
+                type: "POST",
+                url: "@Url.Action("Toggle", "Favorites")",
+                data: { movieId },
+                success: function (data) {
+                    if (data.favorited) {
+                        $(a).find("i").removeClass("fa-regular").addClass("fa-solid");
+                        success("Added to favorites!");
+
+                    }
+                    else {
+                        $(a).find("i").removeClass("fa-solid").addClass("fa-regular");
+                        success("Remove to favorites!")
+                    }
+                    $(a).tooltip("dispose");
+                    $(a).tooltip();
+                }
+
+            })
+        })
+
+      
 
     </script>
+}
+
+@{  
+    List<int> GetFavList()
+    {
+        var favs = Context.Request.Cookies["favs"];
+        if (string.IsNullOrEmpty(favs))
+        {
+            return new List<int>();
+        }
+        try
+        {
+            return favs.Split('-').Select(s => Convert.ToInt32(s)).ToList();
+
+        }
+        catch (Exception)
+        {
+
+            return new List<int>();
+        }
+    }
+
+    
+
+    bool IsFavorited(int movieId)
+    {
+        return favs.Contains(movieId);
+    }
 
 
 }
